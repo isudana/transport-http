@@ -18,7 +18,10 @@
 
 package org.wso2.transport.http.netty.encoding;
 
-import io.netty.handler.codec.http.HttpMethod;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.http.options.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -38,7 +41,6 @@ import org.wso2.transport.http.netty.util.server.HttpServer;
 import org.wso2.transport.http.netty.util.server.initializers.EchoServerInitializer;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.HashMap;
 
@@ -79,25 +81,25 @@ public class ContentEncodingTestCase {
     public void messageEchoingFromProcessorTestCase() {
         String testValue = "Test Message";
         try {
-            HttpURLConnection urlConn = TestUtil.request(baseURI, "/", HttpMethod.POST.name(), true);
-            TestUtil.writeContent(urlConn, testValue);
-            assertEquals(200, urlConn.getResponseCode());
-            TestUtil.getContent(urlConn);
-            urlConn.disconnect();
-        } catch (IOException e) {
+            HttpResponse<String> response = Unirest.post(baseURI.resolve("/").toString()).body(testValue).asString();
+            assertEquals(200, response.getStatus());
+        } catch (UnirestException e) {
             TestUtil.handleException("IOException occurred while running the messageEchoingFromProcessorTestCase", e);
         }
-
     }
 
     @AfterClass
     public void cleanUp() throws ServerConnectorException {
         try {
+            Unirest.shutdown();
+            Options.refresh();
             serverConnector.stop();
             httpServer.shutdown();
             httpWsConnectorFactory.shutdown();
         } catch (InterruptedException e) {
             logger.warn("Interrupted while waiting for clean up");
+        } catch (IOException e) {
+            logger.warn("IOException occurred while waiting for Unirest connection to shutdown", e);
         }
     }
 }

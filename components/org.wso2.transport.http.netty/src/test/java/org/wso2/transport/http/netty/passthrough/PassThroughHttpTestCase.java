@@ -18,7 +18,10 @@
 
 package org.wso2.transport.http.netty.passthrough;
 
-import io.netty.handler.codec.http.HttpMethod;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.http.options.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -38,7 +41,6 @@ import org.wso2.transport.http.netty.util.server.HttpServer;
 import org.wso2.transport.http.netty.util.server.initializers.MockServerInitializer;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.HashMap;
 
@@ -82,11 +84,9 @@ public class PassThroughHttpTestCase {
     @Test
     public void passthroughGetTest() {
         try {
-            HttpURLConnection urlConn = TestUtil.request(baseURI, "/", HttpMethod.GET.name(), true);
-            String content = TestUtil.getContent(urlConn);
-            assertEquals(testValue, content);
-            urlConn.disconnect();
-        } catch (IOException e) {
+            HttpResponse<String> response = Unirest.get(baseURI.resolve("/").toString()).asString();
+            assertEquals(testValue, response.getBody());
+        } catch (UnirestException e) {
             TestUtil.handleException("IOException occurred while running passthroughGetTest", e);
         }
     }
@@ -94,11 +94,9 @@ public class PassThroughHttpTestCase {
     @Test
     public void passthroughPostTest() {
         try {
-            HttpURLConnection urlConn = TestUtil.request(baseURI, "/", HttpMethod.POST.name(), true);
-            String content = TestUtil.getContent(urlConn);
-            assertEquals(testValue, content);
-            urlConn.disconnect();
-        } catch (IOException e) {
+            HttpResponse<String> response = Unirest.post(baseURI.resolve("/").toString()).asString();
+            assertEquals(testValue, response.getBody());
+        } catch (UnirestException e) {
             TestUtil.handleException("IOException occurred while running passthroughPostTest", e);
         }
     }
@@ -106,11 +104,15 @@ public class PassThroughHttpTestCase {
     @AfterClass
     public void cleanUp() throws ServerConnectorException {
         try {
+            Unirest.shutdown();
+            Options.refresh();
             serverConnector.stop();
             httpServer.shutdown();
             httpWsConnectorFactory.shutdown();
         } catch (InterruptedException e) {
             logger.warn("Interrupted while waiting for clean up");
+        } catch (IOException e) {
+            logger.warn("IOException occurred while waiting for Unirest connection to shutdown", e);
         }
     }
 }

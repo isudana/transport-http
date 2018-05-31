@@ -188,6 +188,9 @@ public final class Constants {
     public static final String DIRECTION_REQUEST = "DIRECTION_REQUEST";
     public static final String DIRECTION_RESPONSE = "DIRECTION_RESPONSE";
 
+    // Proxy related parameters
+    public static final String IS_PROXY_ENABLED = "IS_PROXY_ENABLED";
+
     // HTTP2 Related Parameters
     public static final String UPGRADE_RESPONSE_HEADER = "http-to-http2-upgrade";
     public static final String HTTP_VERSION_2_0 = "HTTP/2.0";
@@ -208,12 +211,13 @@ public final class Constants {
     public static final String HTTP_CLIENT_CODEC = "codec";
     public static final String HTTP_SERVER_CODEC = "ServerCodec";
     public static final String HTTP2_SOURCE_HANDLER = "Http2SourceHandler";
+    public static final String HTTP2_SOURCE_CONNECTION_HANDLER = "Http2SourceConnectionHandler";
     public static final String HTTP2_ALPN_HANDLER = "Http2ALPNHandler";
     public static final String PROXY_HANDLER = "proxyServerHandler";
     public static final String SSL_COMPLETION_HANDLER = "sslHandshakeCompletionHandler";
     public static final String HTTP_CERT_VALIDATION_HANDLER = "certificateValidation";
     public static final String CONNECTION_HANDLER = "connectionHandler";
-    public static final String OUTBOUND_HANDLER = "outboundHandler";
+    public static final String HTTP2_TARGET_HANDLER = "http2TargetHandler";
     public static final String TARGET_HANDLER = "targetHandler";
     public static final String HTTP2_TIMEOUT_HANDLER = "Http2TimeoutHandler";
     public static final String HTTP2_UPGRADE_HANDLER = "Http2UpgradeHandler";
@@ -266,6 +270,8 @@ public final class Constants {
     public static final String REQUEST_LINE_TOO_LONG = "An HTTP line is larger than";
     public static final String REQUEST_HEADER_TOO_LARGE = "HTTP header is larger than";
 
+    public static final String IDLE_TIMEOUT_TRIGGERED_BEFORE_READING_INBOUND_REQUEST
+            = "Idle timeout triggered before reading inbound request";
     public static final String IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_REQUEST
             = "Idle timeout triggered while reading inbound request";
     public static final String IDLE_TIMEOUT_TRIGGERED_BEFORE_WRITING_OUTBOUND_RESPONSE

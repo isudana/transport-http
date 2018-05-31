@@ -27,6 +27,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.LastHttpContent;
 import org.wso2.transport.http.netty.common.Constants;
 import org.wso2.transport.http.netty.contract.HttpResponseFuture;
 import org.wso2.transport.http.netty.contract.ServerConnectorException;
@@ -76,12 +77,19 @@ public class HTTPCarbonMessage {
      * @param httpContent chunks of the payload.
      */
     public synchronized void addHttpContent(HttpContent httpContent) {
-        this.contentObservable.notifyAddListener(httpContent);
-        if (this.messageFuture != null) {
-            this.contentObservable.notifyGetListener(httpContent);
-            this.messageFuture.notifyMessageListener(httpContent);
+        contentObservable.notifyAddListener(httpContent);
+        if (messageFuture != null) {
+            contentObservable.notifyGetListener(httpContent);
+            blockingEntityCollector.addHttpContent(httpContent);
+            messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
+            // We remove the feature as the message has reached it life time. If there is a need
+            // for using the same message again, we need to set the future again and restart
+            // the life-cycle.
+            if (httpContent instanceof LastHttpContent) {
+                this.removeMessageFuture();
+            }
         } else {
-            this.blockingEntityCollector.addHttpContent(httpContent);
+            blockingEntityCollector.addHttpContent(httpContent);
         }
     }
 
@@ -173,6 +181,16 @@ public class HTTPCarbonMessage {
     }
 
     /**
+     * Set the header value for the given name.
+     *
+     * @param key header name.
+     * @param value header value as object.
+     */
+    public void setHeader(String key, Object value) {
+        this.httpMessage.headers().set(key, value);
+    }
+
+    /**
      * Let you set a set of headers.
      *
      * @param httpHeaders set of headers that needs to be set.
@@ -196,6 +214,10 @@ public class HTTPCarbonMessage {
         } else {
             return null;
         }
+    }
+
+    public synchronized void removeMessageFuture() {
+        this.messageFuture = null;
     }
 
     public Map<String, Object> getProperties() {
@@ -316,10 +338,6 @@ public class HTTPCarbonMessage {
 
     public EntityCollector getBlockingEntityCollector() {
         return blockingEntityCollector;
-    }
-
-    public synchronized void removeHttpContentAsyncFuture() {
-        this.messageFuture = null;
     }
 
     /**
